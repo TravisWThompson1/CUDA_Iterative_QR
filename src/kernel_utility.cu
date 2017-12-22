@@ -24,7 +24,7 @@
  * @param totalElem Total number of elements in the input strided matrices.
  */
 template <class T>
-__global__ void d_Copy_Strided(double* d_input, double* d_output, long int totalElem){
+__global__ void d_dCopy_Strided(double* d_input, double* d_output, long int totalElem){
     // Thread id number tid:
     int tid =  blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -196,11 +196,73 @@ __global__ void d_zCopy_UpperTriangular_Strided(cuDoubleComplex* d_input, cuDoub
 }
 
 
+/**
+ * Initializes the given strided matrices as identity matrices.
+ * @param d_A Strided matrices to be set to identity matrices.
+ * @param N Number of rows/columns in each matrix.
+ * @param batchSize Number of matrices.
+ */
+__global__ void d_dInitialize_Identity_Batched(double *d_A, int N, int batchSize){
+    // Thread id number tid:
+    int tid =  blockDim.x * blockIdx.x + threadIdx.x;
+
+    // Calculate the total number of elements in the strided matrices.
+    long int totalElem = N * N * batchSize;
+
+    // Calculate thread's local column (i) and row (j) index.
+    int local_tid = tid % (N*N);
+    int i = local_tid / N;
+    int j = local_tid % N;
+
+    // Ensure thread is within memory allocation.
+    if (tid < totalElem) {
+        // Initialize possible outputs.
+        double one = 1.0;
+        double zero = 0.0;
+        // Write identity matrix.
+        if (i == j) {
+            // Diagonal element.
+            d_A[tid] = one;
+        } else {
+            // Non-diagonal element.
+            d_A[tid] = zero;
+        }
+    }
+}
 
 
+/**
+ * Check batched matrices for convergence (0 = converged, 1 = not converged).
+ * @param d_A Input batched matrices.
+ * @param d_INFO Integer result of convergence.
+ * @param N Number of rows/columns.
+ * @param batchSize Number of matrices.
+ */
+__global__ void d_dConvergence_Check(double *d_A, int *d_INFO, int N, int batchSize){
+    // Thread id number tid:
+    int tid =  blockDim.x * blockIdx.x + threadIdx.x;
 
+    // Calculate the total number of elements in the strided matrices.
+    long int totalElem = N * N * batchSize;
 
+    // Calculate thread's local column (i) and row (j) index.
+    int local_tid = tid % (N*N);
+    int i = local_tid / N;
+    int j = local_tid % N;
 
+    // Ensure thread is within memory allocation.
+    if (tid < totalElem) {
+        // Only non-diagonal elements.
+        if (i != j){
+            double value = d_A[tid];
+            // Check for convergence.
+            if (abs(value) > CONVERGENCE_EPS) {
+                // Convergence not met.
+                d_INFO = 1;
+            }
+        }
+    }
+}
 
 
 

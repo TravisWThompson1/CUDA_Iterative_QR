@@ -16,6 +16,10 @@
 #include <cublas_v2.h>
 
 
+#define CONVERGENCE_EPS 1E-5
+
+
+
 
 /**
  * Copies the input strided matrices to the strided output matrices.
@@ -25,7 +29,7 @@
  * @param totalElem Total number of elements in the input strided matrices.
  */
 //template <class T>
-__global__ void d_Copy_Strided(double* d_input, double* d_output, long int totalElem);
+__global__ void d_dCopy_Strided(double* d_input, double* d_output, long int totalElem);
 
 
 
@@ -85,6 +89,25 @@ __global__ void d_zCopy_UpperTriangular_Strided(cuDoubleComplex* d_input, cuDoub
 
 
 
+/**
+ * Initializes the given strided matrices as identity matrices.
+ * @param d_A Strided matrices to be set to identity matrices.
+ * @param N Number of rows/columns in each matrix.
+ * @param batchSize Number of matrices.
+ */
+__global__ void d_dInitialize_Identity_Batched(double *d_A, int N, int batchSize);
+
+
+
+
+/**
+ * Check batched matrices for convergence (0 = converged, 1 = not converged).
+ * @param d_A Input batched matrices.
+ * @param d_INFO Integer result of convergence.
+ * @param N Number of rows/columns.
+ * @param batchSize Number of matrices.
+ */
+__global__ void d_dConvergence_Check(double *d_A, int *d_INFO, int N, int batchSize);
 
 
 #endif //KERNEL_UTILITY_CUH

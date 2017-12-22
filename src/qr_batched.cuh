@@ -16,6 +16,9 @@
 
 #include "kernel_utility.cuh"
 
+#define MAX_BLOCKSIZE 512
+
+
 
 
 kblasHandle_t createHandle();

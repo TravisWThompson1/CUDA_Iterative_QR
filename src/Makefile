@@ -18,7 +18,7 @@ OBJS = $(OBJ_DIR)/kernel_utility.cu_o $(OBJ_DIR)/qr_batched.cu_o
 all: $(OBJS)
 
 # Compile kernel utilities:
-$(OBJ_DIR)/kernel_utility.cu_o: kernel_utility.cu kernel_utility.cuh
+$(OBJ_DIR)/kernel_utility.cu_o: kernel_utility.cu matrixOp_kernels.cuh
 	$(NVCC) $(NVCC_FLAGS) -c $(CUDA_INC_DIR) $< -o $@
 
 # Compile QR Batched routines:
